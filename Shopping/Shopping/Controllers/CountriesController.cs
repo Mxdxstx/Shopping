@@ -1,14 +1,16 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Shopping.Data;
 using Shopping.Data.Entities;
 using Shopping.Models;
-using System.Diagnostics.Metrics;
 
 namespace Shopping.Controllers
 {
+    [Authorize(Roles = "Admin")]
     public class CountriesController : Controller
     {
+
         private readonly DataContext _context;
 
         public CountriesController(DataContext context)
@@ -22,21 +24,21 @@ namespace Shopping.Controllers
 
 
             return _context.Countries != null ?
-                        View(await _context.Countries.Include(c=> c.States).ToListAsync()) :
+                        View(await _context.Countries.Include(c => c.States).ToListAsync()) :
                         Problem("Entity set 'DataContext.Countries'  is null.");
         }
 
         // GET: Countries/Details/5
         public async Task<IActionResult> Details(int? id)
         {
-            if (id == null )
+            if (id == null)
             {
                 return NotFound();
             }
 
             Country country = await _context.Countries
                 .Include(_c => _c.States)
-                .ThenInclude(s=> s.Cities)
+                .ThenInclude(s => s.Cities)
                 .FirstOrDefaultAsync(m => m.Id == id);
 
             if (country == null)
@@ -48,7 +50,7 @@ namespace Shopping.Controllers
         }
         public async Task<IActionResult> DetailsState(int? id)
         {
-            if (id == null )
+            if (id == null)
             {
                 return NotFound();
             }
@@ -153,13 +155,13 @@ namespace Shopping.Controllers
                 {
                     State state = new()
                     {
-                        Cities= new List<City>(),
+                        Cities = new List<City>(),
                         Country = await _context.Countries.FindAsync(model.CountryId),
                         Name = model.Name,
                     };
                     _context.Add(state);
                     await _context.SaveChangesAsync();
-                    return RedirectToAction(nameof(Details), new { Id = model.CountryId});
+                    return RedirectToAction(nameof(Details), new { Id = model.CountryId });
                 }
                 catch (DbUpdateException dbUpdateException)
                 {
@@ -300,7 +302,7 @@ namespace Shopping.Controllers
 
             State state = await _context.States
                 .Include(s => s.Country)
-                .FirstOrDefaultAsync(s => s.Id ==id);
+                .FirstOrDefaultAsync(s => s.Id == id);
             if (state == null)
             {
                 return NotFound();
@@ -430,7 +432,7 @@ namespace Shopping.Controllers
             }
 
             Country country = await _context.Countries
-                .Include(c=>c.States)
+                .Include(c => c.States)
                 .FirstOrDefaultAsync(c => c.Id == id);
             if (country == null)
             {
@@ -486,7 +488,7 @@ namespace Shopping.Controllers
             _context.States.Remove(state);
 
             await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Details), new {Id= state.Country.Id});
+            return RedirectToAction(nameof(Details), new { Id = state.Country.Id });
         }
 
         public async Task<IActionResult> DeleteCity(int? id)
